@@ -1,0 +1,106 @@
+SelectPreFactory f;
+SelectPre* pre=nullptr;
+words=["count","max","min","into"]
+for word in words:
+	if info.find(word):
+		pre=f.createFactory(word);	
+if pre==nullptr:
+	pre=f.createSelectPre("none")
+
+SelectPre的子类：
+SelectNonePre
+SelectCountPre
+SelectMaxPre
+SelectMinPre
+SelectIntoPre
+
+在SelectPre的构造函数中：
+ps.reset  读取info中全部信息
+SelectPre virtual get attrname
+	SelectNone:select后面，from前面
+	SelectCountPre:
+		select后面，逗号前面:attrname
+		count(后面，)前面:countedname
+	SelectMaxPre:
+		同上
+	SelectMinPre:
+		同上
+	SelectInto:
+		同上
+虽然函数名叫getattrname，但是selectcountpre等还要同时获取countedname等其他属性.
+
+SelectPre 
+	get tablenames  
+	from后面,where前面
+
+
+-----------------------------------
+
+SelectPre:读取attrname,exprname,tablename
+尚未完成：whereclauses,exec
+
+SelectInst的子类
+SelectNoneInst
+输出结果直接打印
+SelectGroupInst
+输出结果先分组再打印
+SelectOrderInst
+输出结果先排序再打印
+SelectGroupOrderInst
+输出结果先分组再排序再打印
+
+
+SelectInst* inst
+SelectFactory* factory
+find "group"=b1
+find "order"=b2
+inst=factory->createSelectInst(b1,b2)
+
+SelectFactory::createSelectInst(bgroup,border)
+if bgroup and not border:
+	return new SelectGroupInst(pre)
+elif border and not bgroup	
+	return new SelectOrderInst(pre)
+elif bgroup and border
+	return new SelectGroupOrderInst(pre)
+elif not bgroup and not border
+	return new SelectNoneInst(pre)
+
+
+get whereclauses
+	SelectNoneInst:where后面，分号前面
+	SelectGroupInst:where后面，group前面
+	SelectOrderInst:where后面，order前面
+	SelectGroupOrderInst:where后面,order前面
+
+exec:
+	table->select
+	SelectNoneInst:output
+	SelectGroupInst:先分组，得到一个Group结构体数组，然后output
+	SelectOrderInst:先排序，再output
+	SelectGroupInst:先分组，得到一个Group结构体数组，然后output
+
+output:
+	设置SelectInst的标志位，表示返回结果是vector<Group>还是vector<Record>
+		SelectNoneInst和SelectOrderInst:0
+		SelectGroupInst和SelectGroupOrderInst:1
+	SelectPre按照标志位访问SelectInst中的vector<Record>或者vector<Group>
+	SelectCountPre:
+		分组，统计每个组某个字段非空的数量
+		if attrname:
+			for group in inst->groups:
+				print(group->attrname)
+				print(sum(group->countedname!=null))
+		不分组
+		else:
+			print(count(countedname))
+
+
+扩展数据类型
+class Date
+class Time
+
+
+
+
+
