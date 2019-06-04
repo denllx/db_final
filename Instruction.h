@@ -138,6 +138,7 @@ protected:
 	friend class SelectInst;
 	friend class SelectNoneInst;
 	friend class SelectGroupInst;
+	friend class SelectOrderInst;
 
 	virtual void output() = 0;
 public:
@@ -259,6 +260,24 @@ class SelectGroupInst :public SelectInst {
 public:
 	SelectGroupInst(shared_ptr<SelectPre> pre) :SelectInst(pre) { grouped = true; }
 	void parse_groupedname();
+};
+
+class SelectOrderInst :public SelectInst {
+	friend class SelectInstFactory;
+	friend class SelectPre;
+	friend class SelectCountPre;
+	friend class SelectNonePre;
+	friend class SelectMaxPre;
+	friend class SelectMinPre;
+
+	string orderedname;		//按照哪个字段进行排序
+
+	void parse_whereclause() override;
+	void select(SQL& sql) override;
+	void output() override;
+public:
+	SelectOrderInst(shared_ptr<SelectPre> pre) :SelectInst(pre) { grouped = false; }
+	void parse_orderedname();
 };
 
 class SelectInstFactory {

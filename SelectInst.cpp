@@ -156,50 +156,79 @@ void SelectCountPre::parse_attrname() {
 	ps.match_token(")");
 }
 
+//输出count
 void SelectCountPre::output() {
-	int record_size = inst->records.size();
-	if (attrnames.size() > 0) {
-		if (attrnames[0] == "*") {
-			for (int i = 0; i < inst->attrs.size(); i++) {
-				cout << inst->attrs[i].get_name() << "\t\n"[i == inst->attrs.size() - 1];
-			}
-			for (int i = 0; i < record_size; i++) {
-				auto& cur = inst->records[i];
-				assert(cur.size() == inst->attrs.size());
-				for (int j = 0; j < cur.size(); j++) {
-					cout << *cur.get_field(j) << "\t\n"[j == cur.size() - 1];
+	if (!inst->grouped) {
+		int record_size = inst->records.size();
+		//输出header
+		if (attrnames.size() > 0) {
+			if (attrnames[0] == "*") {
+				for (int i = 0; i < inst->attrs.size(); i++) {
+					cout << inst->attrs[i].get_name() << "\t\n"[i == inst->attrs.size() - 1];
+				}
+				for (int i = 0; i < record_size; i++) {
+					auto& cur = inst->records[i];
+					assert(cur.size() == inst->attrs.size());
+					for (int j = 0; j < cur.size(); j++) {
+						cout << *cur.get_field(j) << "\t\n"[j == cur.size() - 1];
+					}
 				}
 			}
-		}
-		else {
-			int len = attrnames.size();
-			for (int i = 0; i < len; i++) {
-				int attrid = inst->table->export_name2id()[attrnames[i]];
-				cout << inst->attrs[attrid].get_name() << "\t";
-			}
-			cout << endl;
-
-			for (int i = 0; i < record_size; i++) {
-				for (int j = 0; j < len; j++) {
-					cout << *(inst->records)[i].get_field(inst->table->export_name2id()[attrnames[j]]) << "\t";
+			else {
+				int len = attrnames.size();
+				for (int i = 0; i < len; i++) {
+					int attrid = inst->table->export_name2id()[attrnames[i]];
+					cout << inst->attrs[attrid].get_name() << "\t";
 				}
 				cout << endl;
+
+				for (int i = 0; i < record_size; i++) {
+					for (int j = 0; j < len; j++) {
+						cout << *(inst->records)[i].get_field(inst->table->export_name2id()[attrnames[j]]) << "\t";
+					}
+					cout << endl;
+				}
 			}
 		}
-	}
-	//输出count的内容
-	cout << "COUNT(" << countedname << ")\n";
-	if (countedname == "*") {
-		cout << record_size << endl;
+		//输出数量
+		cout << "COUNT(" << countedname << ")\n";
+		if (countedname == "*") {
+			cout << record_size << endl;
+		}
+		else {
+			int cnt = 0;
+			int countedid = inst->table->export_name2id()[countedname];
+			for (int i = 0; i < record_size; i++) {
+				ptr_v value = (inst->records)[i].get_field(countedid);
+				if (!(value.get()->isnull())) cnt++;
+			}
+			cout << cnt << endl;
+		}
 	}
 	else {
-		int cnt = 0;
-		int countedid = inst->table->export_name2id()[countedname];
-		for (int i = 0; i < record_size; i++) {
-			ptr_v value = (inst->records)[i].get_field(countedid);
-			if (!(value.get()->isnull())) cnt++;
+		/*
+			stu_name  count(*)
+			c			1
+			b			2
+			a			3
+		*/
+		auto cast_up = static_cast<SelectGroupInst*>(inst.get());
+		cout << cast_up->groupedname << "\t" << "count(" << countedname << ")\n";
+		int len = cast_up->groups.size();
+		int keyid = cast_up->table->export_name2id()[cast_up->groupedname];
+		int counted_id = cast_up->table->export_name2id()[countedname];
+		for (int i = 0; i < len; i++) {
+			int groupsize = cast_up->groups[i].size();
+			cout << *(cast_up->groups[i].get_record(0)->get_field(keyid))<<"\t";
+			if (countedname == "*") cout<<groupsize<<endl;
+			else {
+				int cnt = 0;
+				for (int j = 0; j < groupsize; j++) {
+					if (cast_up->groups[i].get_record(j)->get_field(counted_id)->isnull() == false) cnt++;
+				}
+				cout << cnt << endl;
+			}
 		}
-		cout << cnt << endl;
 	}
 }
 
@@ -211,10 +240,22 @@ shared_ptr<SelectInst> SelectInstFactory::createSelectInst(bool fg, bool fo,shar
 	else if (fg && !fo) {	//group,no order
 		inst = make_shared<SelectGroupInst>(pre);
 	}
+	else if (!fg && fo) {
+		inst = make_shared<SelectOrderInst>(pre);
+	}
+	else {
+		inst = make_shared<SelectGroupOrderInst>(pre);
+	}
 	pre->setInst(inst);
 	inst->parse_whereclause();
 	if (fg && !fo) {		//group,no order
 		static_cast<SelectGroupInst*>(inst.get())->parse_groupedname();
+	}
+	else if (!fg && fo) {
+		static_cast<SelectOrderInst*>(inst.get())->parse_orderedname();
+	}
+	else if (fg&&fo) {
+		static_cast<SelectGroupOrderInst*>(inst.get())->parse_grouped_ordered_name();
 	}
 	return inst;
 }
@@ -283,4 +324,62 @@ void SelectGroupInst::select(SQL& sql) {
 void SelectGroupInst::output() {
 	if (groups.empty()) return;
 	pre.get()->output();
+}
+
+void SelectOrderInst::parse_whereclause() {
+	//从where开始，到ordered结束
+	if (SelectPre::ps.lookahead("where")) {
+		SelectPre::ps.skip();
+		whereclauses_str = SelectPre::ps.get_str();
+		while (!SelectPre::ps.ended() && !SelectPre::ps.lookahead("order")) {
+			whereclauses_str = whereclauses_str + " " + SelectPre::ps.get_str();
+		}
+	}
+}
+
+void SelectOrderInst::parse_orderedname() {
+	SelectPre::ps.match_token("order");
+	SelectPre::ps.match_token("by");
+	orderedname = SelectPre::ps.get_str();
+}
+
+void SelectOrderInst::select(SQL& sql) {
+	table = sql.get_current_database()->get_table(pre->tablenames[0]);
+	attrs = table->export_id2attr();
+	records = table->select(WhereClauses(whereclauses_str, table->export_name2id()));
+	//按照orderedname排序
+	int ordered_id = table->export_name2id()[orderedname];
+	std::sort(records.begin(), records.end(), RecordComparator(ordered_id));
+}
+
+void SelectOrderInst::output() {
+	if (records.empty()) return;
+	pre.get()->output();
+}
+
+void SelectGroupOrderInst::parse_whereclause() {
+	if (SelectPre::ps.lookahead("where")) {
+		SelectPre::ps.skip();
+		whereclauses_str = SelectPre::ps.get_str();
+		while (!SelectPre::ps.ended() && !SelectPre::ps.lookahead("group")) {
+			whereclauses_str = whereclauses_str + " " + SelectPre::ps.get_str();
+		}
+	}
+}
+
+void SelectGroupOrderInst::parse_grouped_ordered_name() {
+	SelectPre::ps.match_token("group");
+	SelectPre::ps.match_token("by");
+	groupedname = SelectPre::ps.get_str();
+	SelectPre::ps.match_token("order");
+	SelectPre::ps.match_token("by");
+	orderedname = SelectPre::ps.get_str();
+}
+
+void SelectGroupOrderInst::select(SQL& sql) {
+	table = sql.get_current_database()->get_table(pre->tablenames[0]);
+	attrs = table->export_id2attr();
+	records = table->select(WhereClauses(whereclauses_str, table->export_name2id()));
+	int keyid = table->export_name2id()[groupedname];
+	groups = get_group(records, keyid);
 }
