@@ -17,6 +17,7 @@ public:
     Value()=default;
     virtual ~Value()=default;
     virtual bool operator<(const Value&) const;
+	virtual bool operator==(const Value&)const { return false; }
     virtual ptr_v cast_up(ptr_v) const;
     virtual OprdType oprd_type() const;
     friend ostream& operator<<(ostream&, const Value&);
@@ -26,6 +27,7 @@ public:
     static ptr_v v_lt(ptr_v, ptr_v);
     static ptr_v v_gt(ptr_v, ptr_v);
     static ptr_v v_eq(ptr_v, ptr_v);
+	virtual bool isnull() { return true; }
 };
 
 class DoubleValue : public Value{
@@ -33,9 +35,12 @@ class DoubleValue : public Value{
     ostream& print(ostream&) const override;
 public:
     DoubleValue(double);
+	double get_value() const{ return value; }
     bool operator<(const Value&) const override;
+	bool operator==(const Value& v) const override { return !(*this < v) && !(v < *this); }
     ptr_v cast_up(ptr_v) const override;
     OprdType oprd_type() const override;
+	bool isnull() override { return false; }
 };
 
 class IntValue : public Value{
@@ -44,9 +49,12 @@ class IntValue : public Value{
 public:
     IntValue(int);
     shared_ptr<DoubleValue> to_double() const;
+	int get_value() const{ return value; }
     bool operator<(const Value&) const override;
-    ptr_v cast_up(ptr_v) const override;
+	bool operator==(const Value& v) const override { return !(*this < v) && !(v < *this); }
+	ptr_v cast_up(ptr_v) const override;
     OprdType oprd_type() const override;
+	bool isnull() override { return false; }
 };
 
 class CharValue : public Value{
@@ -54,8 +62,11 @@ class CharValue : public Value{
     ostream& print(ostream&) const override;
 public:
     CharValue(string);
+	string get_val() const{ return value; }
     bool operator<(const Value&) const override;
-    ptr_v cast_up(ptr_v) const override;
+	bool operator==(const Value& v) const override { return !(*this < v) && !(v < *this); }
+	ptr_v cast_up(ptr_v) const override;
     OprdType oprd_type() const override;
+	bool isnull() override { return false; }
 };
 

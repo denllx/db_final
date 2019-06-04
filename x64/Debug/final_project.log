@@ -1,0 +1,6 @@
+﻿  SelectInst.cpp
+d:\courses\this_semester\oop\homework\final_project\final_project\selectinst.cpp(113): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+d:\courses\this_semester\oop\homework\final_project\final_project\selectinst.cpp(133): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+d:\courses\this_semester\oop\homework\final_project\final_project\selectinst.cpp(160): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+d:\courses\this_semester\oop\homework\final_project\final_project\selectinst.cpp(175): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+  final_project.vcxproj -> D:\courses\this_semester\oop\homework\final_project\x64\Debug\final_project.exe

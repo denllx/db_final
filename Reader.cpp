@@ -8,9 +8,13 @@
 using namespace utils;
 using namespace std;
 
+string Reader::exprs[] = { "min","max","count" };
+
 shared_ptr<Instruction> Reader::read(istream& fin){
     static istringstream ss;
     static string info;
+	static SelectPreFactory pfactory;
+	static SelectInstFactory ifactory;
     getline(fin,info,';');
     ss.str(info);
     ss.clear();
@@ -53,7 +57,25 @@ shared_ptr<Instruction> Reader::read(istream& fin){
         return make_shared<UpdateInst>(info);
     }else if(mark1=="select"){
         //select
-        return make_shared<SelectInst>(info);
+		string linfo = tolower(info);
+		shared_ptr<SelectPre> pre(nullptr);
+		for (auto expr : exprs) {
+			if (linfo.find(expr)!=string::npos) {
+				pre = pfactory.createSelectPre(expr,info);
+			}
+		}
+		if (pre == nullptr) pre = pfactory.createSelectPre("none",info);
+		bool fg = false, fo = false;
+		if (linfo.find("group") != string::npos) {
+			fg = true;
+		}
+		if (linfo.find("order") != string::npos) {
+			fo = true;
+		}
+		shared_ptr<SelectInst> inst(nullptr);
+		inst= ifactory.createSelectInst(fg, fo, pre);
+		return inst;
+        //return make_shared<SelectInst>(info);
     }else{
         return NULL;
     }

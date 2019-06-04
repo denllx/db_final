@@ -117,6 +117,7 @@
   <ItemGroup>
     <ClInclude Include="Attribute.h" />
     <ClInclude Include="DataBase.h" />
+    <ClInclude Include="Group.h" />
     <ClInclude Include="Instruction.h" />
     <ClInclude Include="Parser.h" />
     <ClInclude Include="Reader.h" />
@@ -136,6 +137,7 @@
     <ClCompile Include="DeleteFromInst.cpp" />
     <ClCompile Include="DropDataBaseInst.cpp" />
     <ClCompile Include="DropTableInst.cpp" />
+    <ClCompile Include="Group.cpp" />
     <ClCompile Include="InsertIntoInst.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Parser.cpp" />

@@ -51,6 +51,9 @@
     <ClInclude Include="WhereClauses.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Group.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Attribute.cpp">
@@ -120,6 +123,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="WhereClauses.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Group.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

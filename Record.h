@@ -12,3 +12,10 @@ public:
     void update(int id, shared_ptr<Value>);
     int size() const;
 };
+
+class RecordComparator {
+	int keyid;
+public:
+	RecordComparator(int key):keyid(key){}
+	bool operator()(const Record&, const Record&) const;
+};
