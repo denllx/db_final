@@ -126,6 +126,16 @@ public:
     void exec(SQL &sql);
 };
 
+class LoadDataInst : public Instruction{
+    string tablename,filename;
+    static Parser ps;
+    vector<string> fieldnames;
+public:
+    LoadDataInst()=delete;
+    LoadDataInst(string);
+    void exec(SQL &sql);
+};
+
 class SelectInst;
 
 class SelectPre {
@@ -270,7 +280,7 @@ class SelectOrderInst :public SelectInst {
 	friend class SelectMaxPre;
 	friend class SelectMinPre;
 
-	string orderedname;		//°´ÕÕÄÄ¸ö×Ö¶Î½øĞĞÅÅĞò
+	string orderedname;		//Â°Â´Ã•Ã•Ã„Ã„Â¸Ã¶Ã—Ã–Â¶ÃÂ½Ã¸ÃÃÃ…Ã…ÃÃ²
 
 	void parse_whereclause() override;
 	void select(SQL& sql) override;
