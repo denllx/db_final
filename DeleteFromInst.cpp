@@ -1,7 +1,7 @@
 #include "Instruction.h"
 using namespace std;
 
-Parser DeleteFromInst::ps = Parser();
+Parser DeleteFromInst::ps;
 
 DeleteFromInst::DeleteFromInst(string s) {
     ps.reset(s);
