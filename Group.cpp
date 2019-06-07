@@ -16,17 +16,17 @@ void Group::addRecord(shared_ptr<Record> r) {
 	records.push_back(r);
 }
 
-vector<Group> get_group(const vector<Record>& records,int keyid) {
-	vector<Group> groups;
+vector<shared_ptr<Group>> get_group(const vector<Record>& records,int keyid) {
+	vector<shared_ptr<Group>> groups;
 	int first = 0, tmp = 1,len=records.size(),ngroup=0;
 	if (records.size() > 0) {
 		while (tmp < len) {
-			groups.push_back(Group());
-			groups[ngroup].addRecord(make_shared<Record>(records[first]));
+			groups.push_back(make_shared<Group>());
+			groups[ngroup]->addRecord(make_shared<Record>(records[first]));
 			tmp = first + 1;
 			while (tmp < len 
 				&& *(records[tmp].get_field(keyid)) == *(records[first].get_field(keyid))) {
-				groups[ngroup].addRecord(make_shared<Record>( records[tmp++]));
+				groups[ngroup]->addRecord(make_shared<Record>( records[tmp++]));
 			}
 			ngroup++;
 			first = tmp;
@@ -34,3 +34,12 @@ vector<Group> get_group(const vector<Record>& records,int keyid) {
 	}
 	return groups;
 }
+
+bool GroupComparatorById::operator()(const shared_ptr<Group>& group1, const shared_ptr<Group>& group2) const{
+	return *(group1->get_record(0)->get_field(keyid)) < *(group2->get_record(0)->get_field(keyid));
+}
+
+bool GroupComparatorByExpr::operator()(const shared_ptr<Group>& group1, const shared_ptr<Group>& group2) const {
+	return group1->getValue() < group2->getValue();
+}
+

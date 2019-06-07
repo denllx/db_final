@@ -29,6 +29,7 @@ public:
     static ptr_v v_gt(ptr_v, ptr_v);
     static ptr_v v_eq(ptr_v, ptr_v);
 	virtual bool isnull() { return true; }
+	virtual void* getval() { return nullptr; }
 };
 
 class DoubleValue : public Value{
@@ -42,6 +43,7 @@ public:
     ptr_v cast_up(ptr_v) const override;
     OprdType oprd_type() const override;
 	bool isnull() override { return false; }
+	void* getval() override { return (void*)(&value); }
 };
 
 class DateValue;
@@ -59,6 +61,7 @@ public:
 	ptr_v cast_up(ptr_v) const override;
     OprdType oprd_type() const override;
 	bool isnull() override { return false; }
+	void* getval() override { return (void*)(&value); }
 };
 
 class CharValue : public Value{
@@ -74,6 +77,8 @@ public:
 	ptr_v cast_up(ptr_v) const override;
     OprdType oprd_type() const override;
 	bool isnull() override { return false; }
+	void* getval() override { return (void*)(value.c_str()); }
+
 };
 
 class DateValue : public Value{
@@ -89,6 +94,8 @@ public:
     ptr_v cast_up(ptr_v) const override;
     OprdType oprd_type() const override;
     bool isnull() override { return false; }
+	void* getval() override { return nullptr; }
+
 };
 
 class TimeValue : public Value{
@@ -105,4 +112,5 @@ public:
     ptr_v cast_up(ptr_v) const override;
     OprdType oprd_type() const override;
     bool isnull() override { return false; }
+	void* getval() override { return nullptr; }
 };

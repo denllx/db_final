@@ -62,8 +62,10 @@ shared_ptr<Instruction> Reader::read(istream& fin){
         //select
 		string linfo = tolower(info);
 		shared_ptr<SelectPre> pre(nullptr);
+		int midpoint = linfo.find("from");
 		for (auto expr : exprs) {
-			if (linfo.find(expr)!=string::npos) {
+			int tmp = linfo.find(expr);
+			if (tmp!=string::npos && tmp<midpoint) {
 				pre = pfactory.createSelectPre(expr,info);
 			}
 		}

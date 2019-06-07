@@ -149,6 +149,7 @@ protected:
 	friend class SelectNoneInst;
 	friend class SelectGroupInst;
 	friend class SelectOrderInst;
+	friend class SelectGroupOrderInst;
 
 	virtual void output() = 0;
 public:
@@ -262,7 +263,7 @@ class SelectGroupInst :public SelectInst {
 	friend class SelectMinPre;
 	
 	string groupedname;
-	vector<Group> groups;
+	vector<shared_ptr<Group>> groups;
 
 	void parse_whereclause() override;
 	void select(SQL& sql) override;
@@ -288,6 +289,26 @@ class SelectOrderInst :public SelectInst {
 public:
 	SelectOrderInst(shared_ptr<SelectPre> pre) :SelectInst(pre) { grouped = false; }
 	void parse_orderedname();
+};
+
+class SelectGroupOrderInst :public SelectInst {
+	friend class SelectInstFactory;
+	friend class SelectPre;
+	friend class SelectCountPre;
+	friend class SelectNonePre;
+	friend class SelectMaxPre;
+	friend class SelectMinPre;
+
+	string orderedop, orderedvalue;	//orderexpr="count" ordervalue="*" or orderexpr=attrname
+	string groupedname;
+	vector<shared_ptr<Group>> groups;
+
+	void parse_whereclause() override;
+	void select(SQL& sql) override;
+	void output() override {}
+public:
+	SelectGroupOrderInst(shared_ptr<SelectPre> pre) :SelectInst(pre) { grouped = true; }
+	void parse_grouped_ordered_name();
 };
 
 class SelectInstFactory {

@@ -1,6 +1,8 @@
 #include <algorithm>
+#include "utils.h"
 #include "Group.h"
 #include "Instruction.h"
+using namespace utils;
 using namespace std;
 
 //Parser SelectInst::ps = Parser();
@@ -131,7 +133,7 @@ void SelectNonePre::output(){
 		assert(attrnames.size()>0 && attrnames[0] == cast_up->groupedname);
 		cout << cast_up->groupedname << endl;
 		for (int i = 0, len = cast_up->groups.size(); i < len; i++) {
-			cout << *(cast_up->groups[i].get_record(0)->get_field(inst->table->export_name2id()[attrnames[0]])) << endl;
+			cout << *(cast_up->groups[i]->get_record(0)->get_field(inst->table->export_name2id()[attrnames[0]])) << endl;
 		}
 	}
 }
@@ -218,13 +220,13 @@ void SelectCountPre::output() {
 		int keyid = cast_up->table->export_name2id()[cast_up->groupedname];
 		int counted_id = cast_up->table->export_name2id()[countedname];
 		for (int i = 0; i < len; i++) {
-			int groupsize = cast_up->groups[i].size();
-			cout << *(cast_up->groups[i].get_record(0)->get_field(keyid))<<"\t";
+			int groupsize = cast_up->groups[i]->size();
+			cout << *(cast_up->groups[i]->get_record(0)->get_field(keyid))<<"\t";
 			if (countedname == "*") cout<<groupsize<<endl;
 			else {
 				int cnt = 0;
 				for (int j = 0; j < groupsize; j++) {
-					if (cast_up->groups[i].get_record(j)->get_field(counted_id)->isnull() == false) cnt++;
+					if (cast_up->groups[i]->get_record(j)->get_field(counted_id)->isnull() == false) cnt++;
 				}
 				cout << cnt << endl;
 			}
@@ -373,7 +375,19 @@ void SelectGroupOrderInst::parse_grouped_ordered_name() {
 	groupedname = SelectPre::ps.get_str();
 	SelectPre::ps.match_token("order");
 	SelectPre::ps.match_token("by");
-	orderedname = SelectPre::ps.get_str();
+	orderedop = SelectPre::ps.get_str();
+
+	//如果是order by count(*)类型，则orderedop=count,ordervalue=*
+	if (SelectPre::ps.lookahead("(")) {
+		SelectPre::ps.skip();
+		orderedvalue = SelectPre::ps.get_str();
+		SelectPre::ps.skip();
+		orderedop = tolower(orderedop);
+	}
+	//否则，orderedop=attrname,orderevalue=空串
+	else {
+		orderedvalue = "";
+	}
 }
 
 void SelectGroupOrderInst::select(SQL& sql) {
@@ -382,4 +396,16 @@ void SelectGroupOrderInst::select(SQL& sql) {
 	records = table->select(WhereClauses(whereclauses_str, table->export_name2id()));
 	int keyid = table->export_name2id()[groupedname];
 	groups = get_group(records, keyid);
+	if (orderedvalue=="") {	//ordered by stuname,orderedop="stuname"
+		std::sort(groups.begin(), groups.end(), GroupComparatorById(keyid));
+	}
+	else {					//ordered by count(*),orderedop="count",orderedvalue="*"
+		int orderedid;
+		if (orderedvalue == "*")	orderedid = -1;
+		else orderedid = table->export_name2id()[orderedvalue];
+		for (auto group : groups) {
+			group->setValue(name_expr.at(orderedop)(group, orderedid));
+		}
+		std::sort(groups.begin(), groups.end(), GroupComparatorByExpr());
+	}
 }

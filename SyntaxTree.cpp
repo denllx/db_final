@@ -32,6 +32,9 @@ const static std::map<std::string, std::function<ptr_v(ptr_v, ptr_v)>>
         {">", [](ptr_v a, ptr_v b) -> ptr_v { return Value::v_gt(a, b); }},
         {"=", [](ptr_v a, ptr_v b) -> ptr_v { return Value::v_eq(a, b); }}};
 
+
+
+
 std::shared_ptr<Node> Node::create_node(const vs &symbols, const s2i &name2id) {
     if (symbols.empty()) return nullptr;
     if (symbols.size() == 1) {

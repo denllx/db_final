@@ -139,6 +139,7 @@
     <ClCompile Include="DropTableInst.cpp" />
     <ClCompile Include="Group.cpp" />
     <ClCompile Include="InsertIntoInst.cpp" />
+    <ClCompile Include="LoadDataInst.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Parser.cpp" />
     <ClCompile Include="Reader.cpp" />

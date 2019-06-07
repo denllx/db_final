@@ -96,14 +96,6 @@ output:
 			print(count(countedname))
 
 
-扩展数据类型
-class Date
-class Time
-
-class Group
-	vector<Record> records;
-	string keyname;
-
 order by count(*)
 
 
