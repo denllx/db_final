@@ -18,7 +18,7 @@ bool is_integer(const std::string &number) {
 
 int get_priority(const std::string &op_name) {
     const static std::map<std::string, int> priority = {
-        {"or", 1}, {"and", 2}, {"<", 3}, {">", 3}, {"=", 3}};
+        {"or", 1}, {"xor", 2}, {"and", 3}, {"<", 4}, {">", 4}, {"=", 4}};
     if (priority.find(op_name) == priority.end()) return priority_max;
     return priority.at(op_name);
 }
@@ -26,6 +26,7 @@ int get_priority(const std::string &op_name) {
 const static std::map<std::string, std::function<ptr_v(ptr_v, ptr_v)>>
     optr_binary = {
         {"or", [](ptr_v a, ptr_v b) -> ptr_v { return Value::v_or(a, b); }},
+        {"xor", [](ptr_v a, ptr_v b) -> ptr_v { return Value::v_xor(a, b); }},
         {"and", [](ptr_v a, ptr_v b) -> ptr_v { return Value::v_and(a, b); }},
         {"<", [](ptr_v a, ptr_v b) -> ptr_v { return Value::v_lt(a, b); }},
         {">", [](ptr_v a, ptr_v b) -> ptr_v { return Value::v_gt(a, b); }},
