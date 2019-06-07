@@ -55,6 +55,9 @@ shared_ptr<Instruction> Reader::read(istream& fin){
     }else if(mark1=="update"){
         //update
         return make_shared<UpdateInst>(info);
+    }else if(mark1=="load"){
+        //load
+        return make_shared<LoadDataInst>(info);
     }else if(mark1=="select"){
         //select
 		string linfo = tolower(info);
@@ -75,9 +78,8 @@ shared_ptr<Instruction> Reader::read(istream& fin){
 		shared_ptr<SelectInst> inst(nullptr);
 		inst= ifactory.createSelectInst(fg, fo, pre);
 		return inst;
-        //return make_shared<SelectInst>(info);
     }else{
-        return NULL;
+        return nullptr;
     }
 }
 
