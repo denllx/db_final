@@ -1,7 +1,7 @@
 #include "Instruction.h"
 using namespace std;
 
-Parser UpdateInst::ps = Parser();
+Parser UpdateInst::ps;
 
 UpdateInst::UpdateInst(string s){
     ps.reset(s);
