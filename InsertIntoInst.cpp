@@ -2,7 +2,7 @@
 #include <cstring>
 using namespace std;
 
-Parser InsertIntoInst::ps=Parser();
+Parser InsertIntoInst::ps;
 
 InsertIntoInst::InsertIntoInst(string s){
     ps.reset(s);
