@@ -5,7 +5,7 @@ using namespace std;
 
 //Parser SelectInst::ps = Parser();
 
-Parser SelectPre::ps = Parser();
+Parser SelectPre::ps;
 
 /*SelectInst::SelectInst(string s) {
     ps.reset(s);
@@ -83,7 +83,7 @@ SelectNonePre::SelectNonePre(const string& info) {
 }
 
 void SelectNonePre::parse_attrname() {
-	//´Óselect¿ªÊ¼£¬µ½from½áÊø
+	//ä»selectå¼€å§‹ï¼Œåˆ°fromç»“æŸ
 	string tmp;
 	ps.match_token("select");
 	while (!ps.lookahead("from")) {
@@ -94,7 +94,7 @@ void SelectNonePre::parse_attrname() {
 	}
 }
 
-//³£¹æÄ£Ê½Êä³ö
+//å¸¸è§„æ¨¡å¼è¾“å‡º
 void SelectNonePre::output(){
 	if (!inst->grouped) {
 		if (attrnames[0] == "*") {
@@ -156,11 +156,11 @@ void SelectCountPre::parse_attrname() {
 	ps.match_token(")");
 }
 
-//Êä³öcount
+//è¾“å‡ºcount
 void SelectCountPre::output() {
 	if (!inst->grouped) {
 		int record_size = inst->records.size();
-		//Êä³öheader
+		//è¾“å‡ºheader
 		if (attrnames.size() > 0) {
 			if (attrnames[0] == "*") {
 				for (int i = 0; i < inst->attrs.size(); i++) {
@@ -190,7 +190,7 @@ void SelectCountPre::output() {
 				}
 			}
 		}
-		//Êä³öÊıÁ¿
+		//è¾“å‡ºæ•°é‡
 		cout << "COUNT(" << countedname << ")\n";
 		if (countedname == "*") {
 			cout << record_size << endl;
@@ -271,7 +271,7 @@ void SelectInst::exec(SQL& sql) {
 }
 
 void SelectNoneInst::parse_whereclause() {
-	//´Ówhere¿ªÊ¼£¬µ½·ÖºÅ½áÊø
+	//ä»whereå¼€å§‹ï¼Œåˆ°åˆ†å·ç»“æŸ
 	if (SelectPre::ps.lookahead("where")) {
 		SelectPre::ps.skip();
 		whereclauses_str = SelectPre::ps.get_str();
@@ -293,7 +293,7 @@ void SelectNoneInst::output() {
 }
 
 void SelectGroupInst::parse_whereclause() {
-	//´Ówhere¿ªÊ¼£¬µ½group½áÊø
+	//ä»whereå¼€å§‹ï¼Œåˆ°groupç»“æŸ
 	if (SelectPre::ps.lookahead("where")) {
 		SelectPre::ps.skip();
 		whereclauses_str = SelectPre::ps.get_str();
@@ -314,9 +314,9 @@ void SelectGroupInst::select(SQL& sql) {
 	attrs = table->export_id2attr();
 	records = table->select(WhereClauses(whereclauses_str, table->export_name2id()));
 	int keyid = table->export_name2id()[groupedname];
-	//½«records°´ÕÕgroupednameÅÅĞò
+	//å°†recordsæŒ‰ç…§groupednameæ’åº
 	std::sort(records.begin(), records.end(), RecordComparator(keyid));
-	//Group¶ÔÏó
+	//Groupå¯¹è±¡
 	groups = get_group(records,keyid);
 	output();
 }
@@ -327,7 +327,7 @@ void SelectGroupInst::output() {
 }
 
 void SelectOrderInst::parse_whereclause() {
-	//´Ówhere¿ªÊ¼£¬µ½ordered½áÊø
+	//ä»whereå¼€å§‹ï¼Œåˆ°orderedç»“æŸ
 	if (SelectPre::ps.lookahead("where")) {
 		SelectPre::ps.skip();
 		whereclauses_str = SelectPre::ps.get_str();
@@ -347,7 +347,7 @@ void SelectOrderInst::select(SQL& sql) {
 	table = sql.get_current_database()->get_table(pre->tablenames[0]);
 	attrs = table->export_id2attr();
 	records = table->select(WhereClauses(whereclauses_str, table->export_name2id()));
-	//°´ÕÕorderednameÅÅĞò
+	//æŒ‰ç…§orderednameæ’åº
 	int ordered_id = table->export_name2id()[orderedname];
 	std::sort(records.begin(), records.end(), RecordComparator(ordered_id));
 }
