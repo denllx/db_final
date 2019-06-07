@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-const std::set<std::string> keywords{"or", "and"};
+const std::set<std::string> keywords{"or", "and", "xor"};
 
 std::string convert(const std::string &s) {
     std::string lower_str = utils::tolower(s);
