@@ -24,6 +24,10 @@ std::shared_ptr<Value> Attribute::create_field(const std::string &value) const {
         return std::make_shared<IntValue>(std::stoi(value));
     if (type == "double")
         return std::make_shared<DoubleValue>(std::stod(value));
+    if (type == "date")
+        return std::make_shared<DateValue>(value.substr(1, value.length() - 2));
+    if (type == "time")
+        return std::make_shared<TimeValue>(value.substr(1, value.length() - 2));
     assert(false);
 }
 
@@ -35,4 +39,6 @@ std::string Attribute::get_type() const{
     if(type=="int") return "int(11)";
     if(type=="char") return "char(1)";
     if(type=="double") return "double";
+    if(type=="date") return "date";
+    if(type=="time") return "time";
 }
