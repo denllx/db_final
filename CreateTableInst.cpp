@@ -5,7 +5,7 @@
 using namespace std;
 using namespace utils;
 
-Parser CreateTableInst::ps=Parser();
+Parser CreateTableInst::ps;
 
 void CreateTableInst::parseAttribute(){
     string name=ps.get_str();
