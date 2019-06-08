@@ -1,3 +1,0 @@
-﻿  main.cpp
-d:\courses\this_semester\oop\homework\client\client\main.cpp(14): warning C4101: “recvCnt”: 未引用的局部变量
-  client.vcxproj -> D:\courses\this_semester\oop\homework\client\Debug\client.exe
