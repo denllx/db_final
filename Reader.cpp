@@ -67,6 +67,7 @@ shared_ptr<Instruction> Reader::read(istream& fin){
 			int tmp = linfo.find(expr);
 			if (tmp!=string::npos && tmp<midpoint) {
 				pre = pfactory.createSelectPre(expr,info);
+				break;
 			}
 		}
 		if (pre == nullptr) pre = pfactory.createSelectPre("none",info);

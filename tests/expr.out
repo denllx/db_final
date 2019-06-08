@@ -1,0 +1,20 @@
+MAX(grade)
+100
+stu_name	max(grade)
+a	100
+b	99
+c	98
+stu_name	max(grade)
+a	100
+b	99
+c	98
+MIN(grade)
+90
+stu_name	min(grade)
+a	90
+b	93
+c	98
+stu_name	min(grade)
+a	90
+b	93
+c	98

@@ -40,6 +40,6 @@ bool GroupComparatorById::operator()(const shared_ptr<Group>& group1, const shar
 }
 
 bool GroupComparatorByExpr::operator()(const shared_ptr<Group>& group1, const shared_ptr<Group>& group2) const {
-	return group1->getValue() < group2->getValue();
+	return group1->getValue() > group2->getValue();		//Ωµ–Ú≈≈¡–
 }
 
