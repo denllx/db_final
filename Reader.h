@@ -7,5 +7,5 @@
 class Reader{
 	static string exprs[];	//count,max,min,etc.
 public:
-    std::shared_ptr<Instruction> read(std::istream& = std::cin);
+    std::shared_ptr<Instruction> read(const string& info);
 };

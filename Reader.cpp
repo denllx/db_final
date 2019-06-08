@@ -10,12 +10,13 @@ using namespace std;
 
 string Reader::exprs[] = { "min","max","count","outfile","avg","ascii","char_length" };
 
-shared_ptr<Instruction> Reader::read(istream& fin){
+shared_ptr<Instruction> Reader::read(const string& inf){
     static istringstream ss;
-    static string info;
+    string info;
 	static SelectPreFactory pfactory;
 	static SelectInstFactory ifactory;
-    getline(fin,info,';');
+    //getline(fin,info,';');
+	info = inf.substr(0,inf.size()-1);
     ss.str(info);
     ss.clear();
     string mark1,mark2;

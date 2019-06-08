@@ -5,6 +5,7 @@
 #include <functional>
 #include <algorithm>
 #include <cassert>
+#include <iostream>
 #include "Record.h"
 using namespace std;
 
@@ -61,7 +62,7 @@ name_expr = {
 			tmpptr = group->get_record(i)->get_field(attrid);
 			if (tmpptr->isnull() == false) {
 				tmp = *((int*)(tmpptr->getval()));
-				maxval = std::max(maxval, tmp);
+				maxval = max(maxval, tmp);
 			}
 			else continue;
 		}
@@ -107,7 +108,7 @@ name_expr = {
 			tmpptr = group->get_record(i)->get_field(attrid);
 			if (tmpptr->isnull() == false) {
 				tmp = *((int*)(tmpptr->getval()));
-				minval = std::min(minval, tmp);
+				minval = min(minval, tmp);
 			}
 			else continue;
 		}

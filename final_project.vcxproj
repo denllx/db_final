@@ -85,6 +85,9 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -140,7 +143,7 @@
     <ClCompile Include="Group.cpp" />
     <ClCompile Include="InsertIntoInst.cpp" />
     <ClCompile Include="LoadDataInst.cpp" />
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="server.cpp" />
     <ClCompile Include="Parser.cpp" />
     <ClCompile Include="Reader.cpp" />
     <ClCompile Include="Record.cpp" />

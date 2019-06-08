@@ -80,9 +80,6 @@
     <ClCompile Include="InsertIntoInst.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="main.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="Parser.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -129,6 +126,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="LoadDataInst.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="server.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

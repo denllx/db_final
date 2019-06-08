@@ -1,0 +1,46 @@
+MAX(grade)
+98
+stu_name	max(grade)
+akira	93
+alice	100
+bob	90
+darwen	92
+sai	98
+sophie	99
+stu_name	max(grade)
+akira	93
+alice	100
+bob	90
+darwen	92
+sai	98
+sophie	99
+MIN(grade)
+93
+stu_name	min(grade)
+akira	93
+alice	100
+bob	90
+darwen	92
+sai	98
+sophie	99
+stu_name	min(grade)
+akira	93
+alice	100
+bob	90
+darwen	92
+sai	98
+sophie	99
+Ascii(stu_name)
+a
+s
+d
+b
+a
+s
+Char_Length(stu_name)
+5
+6
+6
+3
+5
+3

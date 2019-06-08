@@ -102,6 +102,8 @@ order by count(*)
 2、构建正贼表达式
 3、对于给定的condition返回true or false
 
+("201","232")
+
 
 
 
