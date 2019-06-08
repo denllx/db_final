@@ -1,4 +1,6 @@
 #include <algorithm>
+#include <iostream>
+#include <fstream>
 #include "utils.h"
 #include "Group.h"
 #include "Instruction.h"
@@ -62,6 +64,9 @@ shared_ptr<SelectPre> SelectPreFactory::createSelectPre(const string& type,const
 	else if (type == "count") {
 		pre=make_shared<SelectCountPre>(info);
 	}
+	else if (type == "outfile") {
+		pre = make_shared<SelectOutFilePre>(info);
+	}
 	else pre = make_shared<SelectNonePre>(info);
 	pre->parse_attrname();
 	pre->parse_tablenames();
@@ -101,13 +106,13 @@ void SelectNonePre::output(){
 	if (!inst->grouped) {
 		if (attrnames[0] == "*") {
 			for (int i = 0; i < inst->attrs.size(); i++) {
-				cout << inst->attrs[i].get_name() << "\t\n";
+				cout << inst->attrs[i].get_name() << "\t";
 			}
 			for (int i = 0; i < inst->records.size(); i++) {
 				auto& cur = inst->records[i];
 				assert(cur.size() == inst->attrs.size());
 				for (int j = 0; j < cur.size(); j++) {
-					cout << *cur.get_field(j) << "\t\n";
+					cout << *cur.get_field(j) << "\t";
 				}
 			}
 		}
@@ -381,6 +386,67 @@ void SelectMinPre::output() {
 	}
 }
 
+SelectOutFilePre::SelectOutFilePre(const string& info) {
+	ps.reset(info);
+}
+
+void SelectOutFilePre::parse_attrname() {
+	ps.match_token("select");
+	string tmpattr;
+	while (!ps.lookahead("into")) {
+		tmpattr = ps.get_str();
+		if (tmpattr != ",") {
+			attrnames.push_back(tmpattr);
+		}
+	}
+	ps.match_token("into");
+	ps.match_token("outfile");
+	filename= ps.get_str();
+	filename = filename.substr(1, filename.size() - 2);
+	ifstream fin;	//不能是一个已经存在的文件
+	fin.open(filename);
+	assert(!fin);
+}
+
+void SelectOutFilePre::output() {
+	ofstream fout(filename);
+	if (!inst->grouped) {
+		if (attrnames[0] == "*") {	//没有表头
+			for (int i = 0; i < inst->records.size(); i++) {
+				auto& cur = inst->records[i];
+				assert(cur.size() == inst->attrs.size());
+				for (int j = 0; j < cur.size(); j++) {
+					fout << *cur.get_field(j) << "\t";
+				}
+				fout << endl;
+			}
+		}
+		else {
+			int len = attrnames.size();
+			for (int i = 0; i < inst->records.size(); i++) {
+				for (int j = 0; j < len; j++) {
+					fout << *(inst->records)[i].get_field(inst->table->export_name2id()[attrnames[j]]) << "\t";
+				}
+				fout << endl;
+			}
+		}
+	}
+	else {
+		/*
+			stu_name
+			c
+			b
+			a
+		*/
+		auto cast_up = static_cast<SelectGroupInst*>(inst.get());
+		assert(attrnames.size() > 0 && attrnames[0] == cast_up->groupedname);
+		cout << cast_up->groupedname << endl;
+		for (int i = 0, len = cast_up->groups.size(); i < len; i++) {
+			fout << *(cast_up->groups[i]->get_record(0)->get_field(inst->table->export_name2id()[attrnames[0]])) << endl;
+		}
+	}
+	fout.close();
+}
 
 
 

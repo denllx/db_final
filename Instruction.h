@@ -196,6 +196,15 @@ public:
 	void parse_attrname() override;
 };
 
+class SelectOutFilePre :public SelectPre {
+	string filename;
+	void output() override;
+public:
+	SelectOutFilePre() = delete;
+	SelectOutFilePre(const string& type);
+	void parse_attrname() override;
+};
+
 
 class SelectPreFactory {
 public:
@@ -213,6 +222,8 @@ class SelectInst :public Instruction {
 	friend class SelectNonePre;
 	friend class SelectMaxPre;
 	friend class SelectMinPre;
+	friend class SelectOutFilePre;
+
 protected:
 	shared_ptr<Table> table;
 	vector<Attribute> attrs;
@@ -241,6 +252,8 @@ class SelectNoneInst :public SelectInst {
 	friend class SelectNonePre;
 	friend class SelectMaxPre;
 	friend class SelectMinPre;
+	friend class SelectOutFilePre;
+
 public:
 	SelectNoneInst(shared_ptr<SelectPre> pre) :SelectInst(pre) { grouped = false; ordered = false; }
 };
@@ -252,7 +265,8 @@ class SelectGroupInst :public SelectInst {
 	friend class SelectNonePre;
 	friend class SelectMaxPre;
 	friend class SelectMinPre;
-	
+	friend class SelectOutFilePre;
+
 
 	void parse_whereclause() override;
 	void select(SQL& sql) override;
@@ -274,6 +288,7 @@ class SelectOrderInst :public SelectInst {
 	friend class SelectNonePre;
 	friend class SelectMaxPre;
 	friend class SelectMinPre;
+	friend class SelectOutFilePre;
 
 	string orderedname;		//°´ÕÕÄÄ¸ö×Ö¶Î½øÐÐÅÅÐò
 
@@ -292,6 +307,8 @@ class SelectGroupOrderInst :public SelectGroupInst {
 	friend class SelectNonePre;
 	friend class SelectMaxPre;
 	friend class SelectMinPre;
+	friend class SelectOutFilePre;
+
 
 	string orderedop, orderedvalue;	//orderexpr="count" ordervalue="*" or orderexpr=attrname
 

@@ -8,7 +8,7 @@
 using namespace utils;
 using namespace std;
 
-string Reader::exprs[] = { "min","max","count" };
+string Reader::exprs[] = { "min","max","count","outfile" };
 
 shared_ptr<Instruction> Reader::read(istream& fin){
     static istringstream ss;
