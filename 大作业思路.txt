@@ -98,6 +98,10 @@ output:
 
 order by count(*)
 
+待修复的小bug
+vector<Record>& records  加上const
+
+
 
 
 

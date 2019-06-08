@@ -7,51 +7,8 @@
 using namespace utils;
 using namespace std;
 
-//Parser SelectInst::ps = Parser();
 
 Parser SelectPre::ps;
-
-/*SelectInst::SelectInst(string s) {
-    ps.reset(s);
-
-    ps.match_token("select");
-    attrname = ps.get_str();
-    ps.match_token("from");
-    tablename = ps.get_str();
-
-	if(ps.lookahead("where")) {
-        ps.skip();
-        whereclauses_str = ps.get_str();
-        while(!ps.ended() && !ps.lookahead(";")) whereclauses_str = whereclauses_str + " " + ps.get_str();
-    }
-}*/
-
-/*void SelectInst::exec(SQL &sql){
-    shared_ptr<Table> table = sql.get_current_database()->get_table(tablename);
-    vector<Attribute>& attrs = table->export_id2attr();
-    vector<Record> records = table->select(WhereClauses(whereclauses_str, table->export_name2id()));
-
-    if(records.empty()) return;
-    if(attrname == "*") {
-        for(int i = 0; i < attrs.size(); i++) {
-            cout << attrs[i].get_name() << "\t\n"[i == attrs.size() - 1];
-        }
-        for(int i = 0; i < records.size(); i++) {
-            auto& cur = records[i];
-            assert(cur.size() == attrs.size());
-            for(int j = 0; j < cur.size(); j++) {
-                cout << *cur.get_field(j) << "\t\n"[j == cur.size() - 1];
-            }
-        }
-    } else {
-        int attrid = table->export_name2id()[attrname];
-
-        cout << attrs[attrid].get_name() << endl;
-        for(int i = 0; i < records.size(); i++) {
-            cout << *records[i].get_field(attrid) << endl;
-        }
-    }
-}*/
 
 shared_ptr<SelectPre> SelectPreFactory::createSelectPre(const string& type,const string& info) {
 	shared_ptr<SelectPre> pre;
@@ -66,6 +23,15 @@ shared_ptr<SelectPre> SelectPreFactory::createSelectPre(const string& type,const
 	}
 	else if (type == "outfile") {
 		pre = make_shared<SelectOutFilePre>(info);
+	}
+	else if (type == "avg") {
+		pre = make_shared<SelectAvgPre>(info);
+	}
+	else if (type == "ascii") {
+		pre = make_shared<SelectAsciiPre>(info);
+	}
+	else if (type == "char_length") {
+		pre = make_shared<SelectCharLengthPre>(info);
 	}
 	else pre = make_shared<SelectNonePre>(info);
 	pre->parse_attrname();
@@ -103,14 +69,14 @@ void SelectNonePre::parse_attrname() {
 
 //常规模式输出
 void SelectNonePre::output(){
-	if (!inst->grouped) {
+	if (!inst->grouped()) {
 		if (attrnames[0] == "*") {
-			for (int i = 0; i < inst->attrs.size(); i++) {
-				cout << inst->attrs[i].get_name() << "\t";
+			for (int i = 0; i < inst->attrs().size(); i++) {
+				cout << inst->attrs()[i].get_name() << "\t";
 			}
-			for (int i = 0; i < inst->records.size(); i++) {
-				auto& cur = inst->records[i];
-				assert(cur.size() == inst->attrs.size());
+			for (int i = 0; i < inst->records().size(); i++) {
+				auto& cur = inst->records()[i];
+				assert(cur.size() == inst->attrs().size());
 				for (int j = 0; j < cur.size(); j++) {
 					cout << *cur.get_field(j) << "\t";
 				}
@@ -119,14 +85,14 @@ void SelectNonePre::output(){
 		else {
 			int len = attrnames.size();
 			for (int i = 0; i < len; i++) {
-				int attrid = inst->table->export_name2id()[attrnames[i]];
-				cout << inst->attrs[attrid].get_name() << "\t";
+				int attrid = inst->table()->export_name2id()[attrnames[i]];
+				cout << inst->attrs()[attrid].get_name() << "\t";
 			}
 			cout << endl;
 
-			for (int i = 0; i < inst->records.size(); i++) {
+			for (int i = 0; i < inst->records().size(); i++) {
 				for (int j = 0; j < len; j++) {
-					cout << *(inst->records)[i].get_field(inst->table->export_name2id()[attrnames[j]]) << "\t";
+					cout << *(inst->records())[i].get_field(inst->table()->export_name2id()[attrnames[j]]) << "\t";
 				}
 				cout << endl;
 			}
@@ -140,10 +106,10 @@ void SelectNonePre::output(){
 			a
 		*/
 		auto cast_up = static_cast<SelectGroupInst*>(inst.get());
-		assert(attrnames.size()>0 && attrnames[0] == cast_up->groupedname);
-		cout << cast_up->groupedname << endl;
-		for (int i = 0, len = cast_up->groups.size(); i < len; i++) {
-			cout << *(cast_up->groups[i]->get_record(0)->get_field(inst->table->export_name2id()[attrnames[0]])) << endl;
+		assert(attrnames.size()>0 && attrnames[0] == cast_up->groupedname());
+		cout << cast_up->groupedname() << endl;
+		for (int i = 0, len = cast_up->groups().size(); i < len; i++) {
+			cout << *(cast_up->groups()[i]->get_record(0)->get_field(inst->table()->export_name2id()[attrnames[0]])) << endl;
 		}
 	}
 }
@@ -170,17 +136,17 @@ void SelectCountPre::parse_attrname() {
 
 //输出count
 void SelectCountPre::output() {
-	if (!inst->grouped) {
-		int record_size = inst->records.size();
+	if (!inst->grouped()) {
+		int record_size = inst->records().size();
 		//输出header
 		if (attrnames.size() > 0) {
 			if (attrnames[0] == "*") {
-				for (int i = 0; i < inst->attrs.size(); i++) {
-					cout << inst->attrs[i].get_name() << "\t\n";
+				for (int i = 0; i < inst->attrs().size(); i++) {
+					cout << inst->attrs()[i].get_name() << "\t\n";
 				}
 				for (int i = 0; i < record_size; i++) {
-					auto& cur = inst->records[i];
-					assert(cur.size() == inst->attrs.size());
+					auto& cur = inst->records()[i];
+					assert(cur.size() == inst->attrs().size());
 					for (int j = 0; j < cur.size(); j++) {
 						cout << *cur.get_field(j) << "\t\n";
 					}
@@ -189,14 +155,14 @@ void SelectCountPre::output() {
 			else {
 				int len = attrnames.size();
 				for (int i = 0; i < len; i++) {
-					int attrid = inst->table->export_name2id()[attrnames[i]];
-					cout << inst->attrs[attrid].get_name() << "\t";
+					int attrid = inst->table()->export_name2id()[attrnames[i]];
+					cout << inst->attrs()[attrid].get_name() << "\t";
 				}
 				cout << endl;
 
 				for (int i = 0; i < record_size; i++) {
 					for (int j = 0; j < len; j++) {
-						cout << *(inst->records)[i].get_field(inst->table->export_name2id()[attrnames[j]]) << "\t";
+						cout << *(inst->records())[i].get_field(inst->table()->export_name2id()[attrnames[j]]) << "\t";
 					}
 					cout << endl;
 				}
@@ -209,9 +175,9 @@ void SelectCountPre::output() {
 		}
 		else {
 			int cnt = 0;
-			int countedid = inst->table->export_name2id()[countedname];
+			int countedid = inst->table()->export_name2id()[countedname];
 			for (int i = 0; i < record_size; i++) {
-				ptr_v value = (inst->records)[i].get_field(countedid);
+				ptr_v value = (inst->records())[i].get_field(countedid);
 				if (!(value.get()->isnull())) cnt++;
 			}
 			cout << cnt << endl;
@@ -225,18 +191,18 @@ void SelectCountPre::output() {
 			a			3
 		*/
 		SelectGroupInst* cast_up = dynamic_cast<SelectGroupInst*>(inst.get());
-		cout << cast_up->groupedname << "\t" << "count(" << countedname << ")\n";
-		int len = cast_up->groups.size();
-		int keyid = cast_up->table->export_name2id()[cast_up->groupedname];
-		int counted_id = cast_up->table->export_name2id()[countedname];
+		cout << cast_up->groupedname() << "\t" << "count(" << countedname << ")\n";
+		int len = cast_up->groups().size();
+		int keyid = cast_up->table()->export_name2id()[cast_up->groupedname()];
+		int counted_id = cast_up->table()->export_name2id()[countedname];
 		for (int i = 0; i < len; i++) {
-			int groupsize = cast_up->groups[i]->size();
-			cout << *(cast_up->groups[i]->get_record(0)->get_field(keyid))<<"\t";
+			int groupsize = cast_up->groups()[i]->size();
+			cout << *(cast_up->groups()[i]->get_record(0)->get_field(keyid))<<"\t";
 			if (countedname == "*") cout<<groupsize<<endl;
 			else {
 				int cnt = 0;
 				for (int j = 0; j < groupsize; j++) {
-					if (cast_up->groups[i]->get_record(j)->get_field(counted_id)->isnull() == false) cnt++;
+					if (cast_up->groups()[i]->get_record(j)->get_field(counted_id)->isnull() == false) cnt++;
 				}
 				cout << cnt << endl;
 			}
@@ -264,29 +230,30 @@ void SelectMaxPre::parse_attrname() {
 }
 
 void SelectMaxPre::output() {
-	if (!inst->grouped) {
-		int record_size = inst->records.size();
+	if (!inst->grouped()) {
+		int record_size = inst->records().size();
 		//输出header
 		if (attrnames.size() > 0) {
 			if (attrnames[0] == "*") {
-				for (int i = 0; i < inst->attrs.size(); i++) {
-					cout << inst->attrs[i].get_name() << "\t\n";
+				for (int i = 0; i < inst->attrs().size(); i++) {
+					cout << inst->attrs()[i].get_name() << "\t\n";
 				}
 			}
 			else {
 				int len = attrnames.size();
 				for (int i = 0; i < len; i++) {
-					int attrid = inst->table->export_name2id()[attrnames[i]];
-					cout << inst->attrs[attrid].get_name() << "\t";
+					int attrid = inst->table()->export_name2id()[attrnames[i]];
+					cout << inst->attrs()[attrid].get_name() << "\t";
 				}
 				cout << endl;
 			}
 		}
 		//输出最大值
 		cout << "MAX(" << maxname << ")\n";
-		int maxid = inst->table->export_name2id()[maxname];
-		std::sort(inst->records.begin(), inst->records.end(), RecordComparator(maxid));
-		cout << *((int*)(inst->records[record_size - 1].get_field(maxid)->getval()))<<endl;
+		int maxid = inst->table()->export_name2id()[maxname];
+		vector<Record> records = inst->records();
+		std::sort(records.begin(), records.end(), RecordComparator(maxid));
+		cout << *((int*)(inst->records()[record_size - 1].get_field(maxid)->getval()))<<endl;
 	}
 	else {
 		/*
@@ -296,18 +263,18 @@ void SelectMaxPre::output() {
 			a			98
 		*/
 		SelectGroupInst* cast_up = dynamic_cast<SelectGroupInst*>(inst.get());
-		cout << cast_up->groupedname << "\t" << "max(" << maxname << ")\n";
-		int len = cast_up->groups.size();
-		int keyid = cast_up->table->export_name2id()[cast_up->groupedname];
-		int maxid = cast_up->table->export_name2id()[maxname];
+		cout << cast_up->groupedname() << "\t" << "max(" << maxname << ")\n";
+		int len = cast_up->groups().size();
+		int keyid = cast_up->table()->export_name2id()[cast_up->groupedname()];
+		int maxid = cast_up->table()->export_name2id()[maxname];
 		int maxval;
 		for (int i = 0; i < len; i++) {		//对于每个组
-			int groupsize = cast_up->groups[i]->size();
-			cout << *(cast_up->groups[i]->get_record(0)->get_field(keyid)) << "\t";	//输出排序依据
-			maxval= *((int*)(cast_up->groups[i]->get_record(0)->get_field(maxid)->getval()));
+			int groupsize = cast_up->groups()[i]->size();
+			cout << *(cast_up->groups()[i]->get_record(0)->get_field(keyid)) << "\t";	//输出排序依据
+			maxval= *((int*)(cast_up->groups()[i]->get_record(0)->get_field(maxid)->getval()));
 			int tmp;
 			for (int j = 1; j < groupsize; j++) {
-				tmp= *((int*)(cast_up->groups[i]->get_record(j)->get_field(maxid)->getval()));
+				tmp= *((int*)(cast_up->groups()[i]->get_record(j)->get_field(maxid)->getval()));
 				maxval = std::max(maxval, tmp);
 			}
 			cout << maxval << endl;
@@ -335,29 +302,30 @@ void SelectMinPre::parse_attrname(){
 }
 
 void SelectMinPre::output() {
-	if (!inst->grouped) {
-		int record_size = inst->records.size();
+	if (!inst->grouped()) {
+		int record_size = inst->records().size();
 		//输出header
 		if (attrnames.size() > 0) {
 			if (attrnames[0] == "*") {
-				for (int i = 0; i < inst->attrs.size(); i++) {
-					cout << inst->attrs[i].get_name() << "\t\n";
+				for (int i = 0,len=inst->attrs().size(); i < len; i++) {
+					cout << inst->attrs()[i].get_name() << "\t\n";
 				}
 			}
 			else {
 				int len = attrnames.size();
 				for (int i = 0; i < len; i++) {
-					int attrid = inst->table->export_name2id()[attrnames[i]];
-					cout << inst->attrs[attrid].get_name() << "\t";
+					int attrid = inst->table()->export_name2id()[attrnames[i]];
+					cout << inst->attrs()[attrid].get_name() << "\t";
 				}
 				cout << endl;
 			}
 		}
 		//输出最大值
 		cout << "MIN(" << minname << ")\n";
-		int minid = inst->table->export_name2id()[minname];
-		std::sort(inst->records.begin(), inst->records.end(), RecordComparator(minid));
-		cout << *((int*)(inst->records[0].get_field(minid)->getval())) << endl;
+		int minid = inst->table()->export_name2id()[minname];
+		vector<Record> records=inst->records();
+		std::sort(records.begin(), records.end(), RecordComparator(minid));
+		cout << *((int*)(inst->records()[0].get_field(minid)->getval())) << endl;
 	}
 	else {
 		/*
@@ -367,24 +335,276 @@ void SelectMinPre::output() {
 			a			98
 		*/
 		SelectGroupInst* cast_up = dynamic_cast<SelectGroupInst*>(inst.get());
-		cout << cast_up->groupedname << "\t" << "min(" << minname<< ")\n";
-		int len = cast_up->groups.size();
-		int keyid = cast_up->table->export_name2id()[cast_up->groupedname];
-		int minid= cast_up->table->export_name2id()[minname];
+		cout << cast_up->groupedname() << "\t" << "min(" << minname<< ")\n";
+		int len = cast_up->groups().size();
+		int keyid = cast_up->table()->export_name2id()[cast_up->groupedname()];
+		int minid= cast_up->table()->export_name2id()[minname];
 		int minval;
 		for (int i = 0; i < len; i++) {		//对于每个组
-			int groupsize = cast_up->groups[i]->size();
-			cout << *(cast_up->groups[i]->get_record(0)->get_field(keyid)) << "\t";	//输出排序依据
-			minval = *((int*)(cast_up->groups[i]->get_record(0)->get_field(minid)->getval()));
+			int groupsize = cast_up->groups()[i]->size();
+			cout << *(cast_up->groups()[i]->get_record(0)->get_field(keyid)) << "\t";	//输出排序依据
+			minval = *((int*)(cast_up->groups()[i]->get_record(0)->get_field(minid)->getval()));
 			int tmp;
 			for (int j = 1; j < groupsize; j++) {
-				tmp = *((int*)(cast_up->groups[i]->get_record(j)->get_field(minid)->getval()));
+				tmp = *((int*)(cast_up->groups()[i]->get_record(j)->get_field(minid)->getval()));
 				minval= std::min(minval, tmp);
 			}
 			cout << minval << endl;
 		}
 	}
 }
+
+SelectAvgPre::SelectAvgPre(const string& info) {
+	ps.reset(info);
+}
+
+void SelectAvgPre::parse_attrname() {
+	ps.match_token("select");
+	string tmpattr;
+	while (!ps.lookahead("avg")) {
+		tmpattr = ps.get_str();
+		if (tmpattr != ",") {
+			attrnames.push_back(tmpattr);
+		}
+	}
+	ps.match_token("avg");
+	ps.match_token("(");
+	avgname= ps.get_str();
+	ps.match_token(")");
+}
+
+void SelectAvgPre::output() {		
+	if (!inst->grouped()) {
+		int record_size = inst->records().size();
+		//输出header
+		if (attrnames.size() > 0) {
+			if (attrnames[0] == "*") {
+				for (int i = 0,len=inst->attrs().size(); i < len; i++) {
+					cout << inst->attrs()[i].get_name() << "\t";
+				}
+				cout << endl;
+			}
+			else {
+				int len = attrnames.size();
+				for (int i = 0; i < len; i++) {
+					int attrid = inst->table()->export_name2id()[attrnames[i]];
+					cout << inst->attrs()[attrid].get_name() << "\t";
+				}
+				cout << endl;
+			}
+		}
+		//输出平均值
+		cout << "AVG(" << avgname<< ")\n";
+		int avgid= inst->table()->export_name2id()[avgname];
+		double sum = 0,cnt=0;
+		ptr_v tmpptr = nullptr;
+		for (int i = 0; i < record_size; i++) {
+			tmpptr = inst->records()[i].get_field(avgid);
+			if (tmpptr->isnull() == false) {
+				cnt++;
+				sum += *((double*)(tmpptr->getval()));
+			}
+		}
+		if (cnt != 0) cout << (sum / cnt) << endl;
+		else cout << "NULL" << endl;
+	}
+	else {
+		/*
+			stu_name  avg(grade)
+			c			93.3
+			b			92.2
+			a			91.1
+		*/
+		SelectGroupInst* cast_up = dynamic_cast<SelectGroupInst*>(inst.get());
+		cout << cast_up->groupedname() << "\t" << "avg(" << avgname<< ")\n";
+		int len = cast_up->groups().size();
+		int keyid = cast_up->table()->export_name2id()[cast_up->groupedname()];
+		int avgid = cast_up->table()->export_name2id()[avgname];
+		double sum = 0;
+		int cnt = 0;
+		ptr_v tmpptr = nullptr;;
+		for (int i = 0; i < len; i++) {		//对于每个组
+			int groupsize = cast_up->groups()[i]->size();
+			cout << *(cast_up->groups()[i]->get_record(0)->get_field(keyid)) << "\t";	//输出排序依据
+			sum = 0, cnt = 0;
+			for (int j = 0; j < groupsize; j++) {
+				tmpptr = cast_up->groups()[i]->get_record(j)->get_field(avgid);
+				if (tmpptr->isnull() == false) {
+					cnt++;
+					switch (tmpptr->oprd_type())
+					{
+					case Double:
+						sum += *((double*)(tmpptr->getval()));
+						break;
+					case NZero:
+						sum += *((int*)(tmpptr->getval()));
+					default:
+						break;
+					}
+				}
+			}
+			if (cnt > 0) cout << (sum / cnt) << endl;
+			else cout << "NULL" << endl;
+		}
+	}
+}
+
+SelectAsciiPre::SelectAsciiPre(const string& info) {
+	ps.reset(info);
+}
+
+void SelectAsciiPre::parse_attrname() {
+	ps.match_token("select");
+	string tmpattr;
+	while (!ps.lookahead("ascii")) {
+		tmpattr = ps.get_str();
+		if (tmpattr != ",") {
+			attrnames.push_back(tmpattr);
+		}
+	}
+	ps.match_token("ascii");
+	ps.match_token("(");
+	asciiname = ps.get_str();
+	ps.match_token(")");
+}
+
+void SelectAsciiPre::output() {
+	if (!inst->grouped()) {
+		int record_size = inst->records().size();
+		//输出header
+		if (attrnames.size() > 0) {
+			if (attrnames[0] == "*") {
+				for (int i = 0; i < inst->attrs().size(); i++) {
+					cout << inst->attrs()[i].get_name() << "\t";
+				}
+				cout << endl;
+			}
+			else {
+				int len = attrnames.size();
+				for (int i = 0; i < len; i++) {
+					int attrid = inst->table()->export_name2id()[attrnames[i]];
+					cout << inst->attrs()[attrid].get_name() << "\t";
+				}
+				cout << endl;
+			}
+		}
+		//输出首字母
+		cout << "Ascii(" << asciiname << ")\n";
+		int avgid = inst->table()->export_name2id()[asciiname];
+		ptr_v tmpptr = nullptr;
+		for (int i = 0; i < record_size; i++) {
+			tmpptr = inst->records()[i].get_field(avgid);
+			if (tmpptr->isnull() == false) {
+				char* v = (char*)(tmpptr->getval());
+				cout << v[0] << endl;
+			}
+		}
+	}
+	else {
+		/*
+			stu_name  ascii(stu_name)
+			c			l
+			b			a
+			a			s
+		*/
+		SelectGroupInst* cast_up = dynamic_cast<SelectGroupInst*>(inst.get());
+		cout << cast_up->groupedname() << "\t" << "ascii(" << asciiname<< ")\n";
+		int len = cast_up->groups().size();
+		int keyid = cast_up->table()->export_name2id()[cast_up->groupedname()];
+		int asciiid= cast_up->table()->export_name2id()[asciiname];
+		ptr_v tmpptr = nullptr;;
+		for (int i = 0; i < len; i++) {		//对于每个组
+			int groupsize = cast_up->groups()[i]->size();
+			cout << *(cast_up->groups()[i]->get_record(0)->get_field(keyid)) << "\t";	//输出排序依据
+			for (int j = 0; j < groupsize; j++) {
+				tmpptr = cast_up->groups()[i]->get_record(j)->get_field(asciiid);
+				if (tmpptr->isnull() == false) {
+					char* v = (char*)(tmpptr->getval());
+					cout << v[0] << endl;
+				}
+			}
+		}
+	}
+}
+
+SelectCharLengthPre::SelectCharLengthPre(const string& info) {
+	ps.reset(info);
+}
+
+void SelectCharLengthPre::parse_attrname() {
+	ps.match_token("select");
+	string tmpattr;
+	while (!ps.lookahead("char_length")) {
+		tmpattr = ps.get_str();
+		if (tmpattr != ",") {
+			attrnames.push_back(tmpattr);
+		}
+	}
+	ps.match_token("char_length");
+	ps.match_token("(");
+	lenname= ps.get_str();
+	ps.match_token(")");
+}
+
+void SelectCharLengthPre::output() {
+	if (!inst->grouped()) {
+		int record_size = inst->records().size();
+		//输出header
+		if (attrnames.size() > 0) {
+			if (attrnames[0] == "*") {
+				for (int i = 0; i < inst->attrs().size(); i++) {
+					cout << inst->attrs()[i].get_name() << "\t";
+				}
+				cout << endl;
+			}
+			else {
+				int len = attrnames.size();
+				for (int i = 0; i < len; i++) {
+					int attrid = inst->table()->export_name2id()[attrnames[i]];
+					cout << inst->attrs()[attrid].get_name() << "\t";
+				}
+				cout << endl;
+			}
+		}
+		//输出首字母
+		cout << "Char_Length(" << lenname<< ")\n";
+		int avgid = inst->table()->export_name2id()[lenname];
+		ptr_v tmpptr = nullptr;
+		for (int i = 0; i < record_size; i++) {
+			tmpptr = inst->records()[i].get_field(avgid);
+			if (tmpptr->isnull() == false) {
+				char* v = (char*)(tmpptr->getval());
+				cout << strlen(v) << endl;
+			}
+		}
+	}
+	else {
+		/*
+			stu_name  ascii(stu_name)
+			c			l
+			b			a
+			a			s
+		*/
+		SelectGroupInst* cast_up = dynamic_cast<SelectGroupInst*>(inst.get());
+		cout << cast_up->groupedname() << "\t" << "ascii(" << lenname<< ")\n";
+		int len = cast_up->groups().size();
+		int keyid = cast_up->table()->export_name2id()[cast_up->groupedname()];
+		int asciiid = cast_up->table()->export_name2id()[lenname];
+		ptr_v tmpptr = nullptr;;
+		for (int i = 0; i < len; i++) {		//对于每个组
+			int groupsize = cast_up->groups()[i]->size();
+			cout << *(cast_up->groups()[i]->get_record(0)->get_field(keyid)) << "\t";	//输出排序依据
+			for (int j = 0; j < groupsize; j++) {
+				tmpptr = cast_up->groups()[i]->get_record(j)->get_field(asciiid);
+				if (tmpptr->isnull() == false) {
+					char* v = (char*)(tmpptr->getval());
+					cout << strlen(v)<< endl;
+				}
+			}
+		}
+	}
+}
+
 
 SelectOutFilePre::SelectOutFilePre(const string& info) {
 	ps.reset(info);
@@ -410,11 +630,11 @@ void SelectOutFilePre::parse_attrname() {
 
 void SelectOutFilePre::output() {
 	ofstream fout(filename);
-	if (!inst->grouped) {
+	if (!inst->grouped()) {
 		if (attrnames[0] == "*") {	//没有表头
-			for (int i = 0; i < inst->records.size(); i++) {
-				auto& cur = inst->records[i];
-				assert(cur.size() == inst->attrs.size());
+			for (int i = 0,len= inst->records().size(); i < len; i++) {
+				auto& cur = inst->records()[i];
+				assert(cur.size() == inst->attrs().size());
 				for (int j = 0; j < cur.size(); j++) {
 					fout << *cur.get_field(j) << "\t";
 				}
@@ -423,9 +643,9 @@ void SelectOutFilePre::output() {
 		}
 		else {
 			int len = attrnames.size();
-			for (int i = 0; i < inst->records.size(); i++) {
+			for (int i = 0; i < inst->records().size(); i++) {
 				for (int j = 0; j < len; j++) {
-					fout << *(inst->records)[i].get_field(inst->table->export_name2id()[attrnames[j]]) << "\t";
+					fout << *(inst->records())[i].get_field(inst->table()->export_name2id()[attrnames[j]]) << "\t";
 				}
 				fout << endl;
 			}
@@ -439,10 +659,10 @@ void SelectOutFilePre::output() {
 			a
 		*/
 		auto cast_up = static_cast<SelectGroupInst*>(inst.get());
-		assert(attrnames.size() > 0 && attrnames[0] == cast_up->groupedname);
-		cout << cast_up->groupedname << endl;
-		for (int i = 0, len = cast_up->groups.size(); i < len; i++) {
-			fout << *(cast_up->groups[i]->get_record(0)->get_field(inst->table->export_name2id()[attrnames[0]])) << endl;
+		assert(attrnames.size() > 0 && attrnames[0] == cast_up->groupedname());
+		cout << cast_up->groupedname() << endl;
+		for (int i = 0, len = cast_up->groups().size(); i < len; i++) {
+			fout << *(cast_up->groups()[i]->get_record(0)->get_field(inst->table()->export_name2id()[attrnames[0]])) << endl;
 		}
 	}
 	fout.close();
@@ -500,13 +720,13 @@ void SelectNoneInst::parse_whereclause() {
 }
 
 void SelectNoneInst::select(SQL& sql) {
-	table = sql.get_current_database()->get_table(pre->tablenames[0]);
-	attrs = table->export_id2attr();
-	records = table->select(WhereClauses(whereclauses_str, table->export_name2id()));
+	_table = sql.get_current_database()->get_table(pre->tablenames[0]);
+	_attrs = _table->export_id2attr();
+	_records = _table->select(WhereClauses(whereclauses_str, _table->export_name2id()));
 }
 
 void SelectNoneInst::output() {
-	if (records.empty()) return;
+	if (_records.empty()) return;
 	pre.get()->output();
 }
 
@@ -524,23 +744,23 @@ void SelectGroupInst::parse_whereclause() {
 void SelectGroupInst::parse_groupedname() {
 	SelectPre::ps.match_token("group");
 	SelectPre::ps.match_token("by");
-	groupedname = SelectPre::ps.get_str();
+	_groupedname = SelectPre::ps.get_str();
 }
 
 void SelectGroupInst::select(SQL& sql) {
-	table = sql.get_current_database()->get_table(pre->tablenames[0]);
-	attrs = table->export_id2attr();
-	records = table->select(WhereClauses(whereclauses_str, table->export_name2id()));
-	int keyid = table->export_name2id()[groupedname];
+	_table = sql.get_current_database()->get_table(pre->tablenames[0]);
+	_attrs = _table->export_id2attr();
+	_records = _table->select(WhereClauses(whereclauses_str, _table->export_name2id()));
+	int keyid = _table->export_name2id()[_groupedname];
 	//将records按照groupedname排序
-	std::sort(records.begin(), records.end(), RecordComparator(keyid));
+	std::sort(_records.begin(), _records.end(), RecordComparator(keyid));
 	//Group对象
-	groups = get_group(records,keyid);
+	_groups = get_group(_records,keyid);
 	output();
 }
 
 void SelectGroupInst::output() {
-	if (groups.empty()) return;
+	if (_groups.empty()) return;
 	pre.get()->output();
 }
 
@@ -562,16 +782,16 @@ void SelectOrderInst::parse_orderedname() {
 }
 
 void SelectOrderInst::select(SQL& sql) {
-	table = sql.get_current_database()->get_table(pre->tablenames[0]);
-	attrs = table->export_id2attr();
-	records = table->select(WhereClauses(whereclauses_str, table->export_name2id()));
+	_table = sql.get_current_database()->get_table(pre->tablenames[0]);
+	_attrs = _table->export_id2attr();
+	_records = _table->select(WhereClauses(whereclauses_str, _table->export_name2id()));
 	//按照orderedname排序
-	int ordered_id = table->export_name2id()[orderedname];
-	std::sort(records.begin(), records.end(), RecordComparator(ordered_id));
+	int ordered_id = _table->export_name2id()[orderedname];
+	std::sort(_records.begin(), _records.end(), RecordComparator(ordered_id));
 }
 
 void SelectOrderInst::output() {
-	if (records.empty()) return;
+	if (_records.empty()) return;
 	pre.get()->output();
 }
 
@@ -588,7 +808,7 @@ void SelectGroupOrderInst::parse_whereclause() {
 void SelectGroupOrderInst::parse_grouped_ordered_name() {
 	SelectPre::ps.match_token("group");
 	SelectPre::ps.match_token("by");
-	groupedname = SelectPre::ps.get_str();
+	_groupedname = SelectPre::ps.get_str();
 	SelectPre::ps.match_token("order");
 	SelectPre::ps.match_token("by");
 	orderedop = SelectPre::ps.get_str();
@@ -607,26 +827,26 @@ void SelectGroupOrderInst::parse_grouped_ordered_name() {
 }
 
 void SelectGroupOrderInst::select(SQL& sql) {
-	table = sql.get_current_database()->get_table(pre->tablenames[0]);
-	attrs = table->export_id2attr();
-	records = table->select(WhereClauses(whereclauses_str, table->export_name2id()));
-	int keyid = table->export_name2id()[groupedname];
-	groups = get_group(records, keyid);
+	_table = sql.get_current_database()->get_table(pre->tablenames[0]);
+	_attrs = _table->export_id2attr();
+	_records = _table->select(WhereClauses(whereclauses_str, _table->export_name2id()));
+	int keyid = _table->export_name2id()[_groupedname];
+	_groups = get_group(_records, keyid);
 	if (orderedvalue=="") {	//ordered by stuname,orderedop="stuname"
-		std::sort(groups.begin(), groups.end(), GroupComparatorById(keyid));
+		std::sort(_groups.begin(), _groups.end(), GroupComparatorById(keyid));
 	}
 	else {					//ordered by count(*),orderedop="count",orderedvalue="*"
 		int orderedid;
 		if (orderedvalue == "*")	orderedid = -1;
-		else orderedid = table->export_name2id()[orderedvalue];
-		for (auto group : groups) {
+		else orderedid = _table->export_name2id()[orderedvalue];
+		for (auto group : _groups) {
 			group->setValue(name_expr.at(orderedop)(group, orderedid));
 		}
-		std::sort(groups.begin(), groups.end(), GroupComparatorByExpr());
+		std::sort(_groups.begin(), _groups.end(), GroupComparatorByExpr());
 	}
 }
 
 void SelectGroupOrderInst::output() {
-	if (groups.empty()) return;
+	if (_groups.empty()) return;
 	pre.get()->output();
 }

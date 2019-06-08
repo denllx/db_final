@@ -67,6 +67,33 @@ name_expr = {
 		}
 		return maxval;
 	 }},
+	 {
+	"avg",[](shared_ptr<Group> group,int attrid)->int {
+			int s = group->size();
+			assert(s > 0);
+			double sum = 0;
+			int cnt = 0;
+			ptr_v tmpptr = nullptr;
+			for (int i = 0; i < s; i++) {
+				tmpptr = group->get_record(i)->get_field(attrid);
+				if (tmpptr->isnull() == false) {
+					cnt++;
+					switch (tmpptr->oprd_type())
+					{
+					case Double:
+						sum += *((double*)(tmpptr->getval()));
+						break;
+					case NZero:
+						sum += *((int*)(tmpptr->getval()));
+					default:
+						break;
+					}
+				}
+			}
+			if (cnt!=0) return sum / cnt;
+			return -INFINITY;
+		}
+	},	
 	{"min", [](shared_ptr<Group> group, int attrid) -> int {
 	int s = group->size();
 		assert(s > 0);
@@ -84,7 +111,9 @@ name_expr = {
 			}
 			else continue;
 		}
-		return minval; }},
+		return minval; 
+	 }
+	 },
 	};
 
 

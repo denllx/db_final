@@ -205,119 +205,117 @@ public:
 	void parse_attrname() override;
 };
 
+class SelectAvgPre :public SelectPre {
+	string avgname;
+	void output() override;
+public:
+	SelectAvgPre() = delete;
+	SelectAvgPre(const string& type);
+	void parse_attrname() override;
+};
+
+class SelectAsciiPre :public SelectPre {
+	string asciiname;
+	void output() override;
+public:
+	SelectAsciiPre() = delete;
+	SelectAsciiPre(const string& type);
+	void parse_attrname()override;
+};
+
+class SelectCharLengthPre :public SelectPre {
+	string lenname;
+	void output() override;
+public:
+	SelectCharLengthPre() = delete;
+	SelectCharLengthPre(const string& type);
+	void parse_attrname()override;
+};
+
 
 class SelectPreFactory {
 public:
 	shared_ptr<SelectPre> createSelectPre(const string& type,const string& info);
 };
 
-
-
 class SelectInstFactory;
 
 class SelectInst :public Instruction {
-	friend class SelectInstFactory;
-	friend class SelectPre;
-	friend class SelectCountPre;
-	friend class SelectNonePre;
-	friend class SelectMaxPre;
-	friend class SelectMinPre;
-	friend class SelectOutFilePre;
-
 protected:
-	shared_ptr<Table> table;
-	vector<Attribute> attrs;
-	vector<Record> records;
+	shared_ptr<Table> _table;
+	vector<Attribute> _attrs;
+	vector<Record> _records;
 	string whereclauses_str;
 	shared_ptr<SelectPre> pre;
+	bool _grouped, _ordered;
 
-	virtual void parse_whereclause() = 0;
 	virtual void select(SQL& sql) = 0;
 	virtual void output() = 0;
-	bool grouped,ordered;
 public:
 	SelectInst(shared_ptr<SelectPre> pre);
 	void exec(SQL& sql);
+	bool grouped() const{ return _grouped; }
+	bool ordered() const{ return _ordered; }
+	vector<Record> records() { return _records; }
+	const vector<Attribute>& attrs() const{ return _attrs; }
+	const shared_ptr<Table> table() const{ return _table; }
+	virtual void parse_whereclause() = 0;
+
 };
 
 class SelectNoneInst :public SelectInst {
 	friend class SelectInstFactory;
 
-	void parse_whereclause() override;
 	void select(SQL& sql) override;
 	void output() override;
 
-	friend class SelectPre;
-	friend class SelectCountPre;
-	friend class SelectNonePre;
-	friend class SelectMaxPre;
-	friend class SelectMinPre;
-	friend class SelectOutFilePre;
-
 public:
-	SelectNoneInst(shared_ptr<SelectPre> pre) :SelectInst(pre) { grouped = false; ordered = false; }
+	SelectNoneInst(shared_ptr<SelectPre> pre) :SelectInst(pre) { 
+		_grouped = false; _ordered = false;
+	}
+	void parse_whereclause() override;
+
 };
 
 class SelectGroupInst :public SelectInst {
-	friend class SelectInstFactory;
-	friend class SelectPre;
-	friend class SelectCountPre;
-	friend class SelectNonePre;
-	friend class SelectMaxPre;
-	friend class SelectMinPre;
-	friend class SelectOutFilePre;
-
-
-	void parse_whereclause() override;
 	void select(SQL& sql) override;
 	void output() override;
 
 protected:
-	string groupedname;
-	vector<shared_ptr<Group>> groups;
+	string _groupedname;
+	vector<shared_ptr<Group>> _groups;
 
 public:
-	SelectGroupInst(shared_ptr<SelectPre> pre) :SelectInst(pre) { grouped = true; ordered = false; }
+	SelectGroupInst(shared_ptr<SelectPre> pre) :SelectInst(pre) { _grouped = true; _ordered = false; }
 	void parse_groupedname();
+	string groupedname() { return _groupedname; }
+	const vector<shared_ptr<Group>>& groups() const{ return _groups; }
+	void parse_whereclause() override;
+
 };
 
 class SelectOrderInst :public SelectInst {
-	friend class SelectInstFactory;
-	friend class SelectPre;
-	friend class SelectCountPre;
-	friend class SelectNonePre;
-	friend class SelectMaxPre;
-	friend class SelectMinPre;
-	friend class SelectOutFilePre;
-
 	string orderedname;		//°´ÕÕÄÄ¸ö×Ö¶Î½øÐÐÅÅÐò
 
-	void parse_whereclause() override;
 	void select(SQL& sql) override;
 	void output() override;
 public:
-	SelectOrderInst(shared_ptr<SelectPre> pre) :SelectInst(pre) { grouped = false; ordered = true; }
+	SelectOrderInst(shared_ptr<SelectPre> pre) :SelectInst(pre) { _grouped = false; _ordered = true; }
 	void parse_orderedname();
+	void parse_whereclause() override;
+
 };
 
 class SelectGroupOrderInst :public SelectGroupInst {
-	friend class SelectInstFactory;
-	friend class SelectPre;
-	friend class SelectCountPre;
-	friend class SelectNonePre;
-	friend class SelectMaxPre;
-	friend class SelectMinPre;
-	friend class SelectOutFilePre;
-
-
 	string orderedop, orderedvalue;	//orderexpr="count" ordervalue="*" or orderexpr=attrname
 
-	void parse_whereclause() override;
 	void select(SQL& sql) override;
 	void output() override;
 public:
-	SelectGroupOrderInst(shared_ptr<SelectPre> pre) :SelectGroupInst(pre) { grouped = true; ordered = true; }
+	SelectGroupOrderInst(shared_ptr<SelectPre> pre) :SelectGroupInst(pre) { _grouped = true; _ordered = true; }
 	void parse_grouped_ordered_name();
+	void parse_whereclause() override;
+
 };
 
 class SelectInstFactory {

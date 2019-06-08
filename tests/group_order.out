@@ -14,3 +14,7 @@ stu_name	count(*)
 a	3
 b	2
 c	2
+stu_name	avg(grade)
+c	98
+b	96
+a	94

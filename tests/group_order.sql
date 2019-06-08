@@ -12,4 +12,5 @@ SELECT stu_name, COUNT(*) from oop_info GROUP BY stu_name ORDER BY COUNT(*);
 SELECT stu_name, COUNT(*) from oop_info GROUP BY stu_name ORDER BY MAX(grade);
 SELECT stu_name, COUNT(*) from oop_info GROUP BY stu_name ORDER BY MIN(grade);
 SELECT stu_name, COUNT(*) from oop_info GROUP BY stu_name ORDER BY COUNT(grade);
+SELECT stu_name, AVG(grade) from oop_info GROUP BY stu_name ORDER BY AVG(grade);
 DROP DATABASE OOP;
