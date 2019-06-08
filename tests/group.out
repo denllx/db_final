@@ -6,6 +6,14 @@ stu_name	count(stu_id)
 a	3
 b	2
 c	1
+stu_name	count(stu_id)
+a	3
+b	2
+c	1
+stu_name	count(stu_id)
+a	3
+b	2
+c	1
 stu_name	count(stu_name)
 a	3
 b	2

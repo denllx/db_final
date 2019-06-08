@@ -8,6 +8,7 @@ INSERT INTO oop_info(stu_id, stu_name) VALUES (2018011043, "a");
 INSERT INTO oop_info(stu_id, stu_name) VALUES (2018010243, "a");
 INSERT INTO oop_info(stu_id, stu_name) VALUES (2018001394, "b");
 SELECT stu_name, COUNT(stu_id) from oop_info GROUP BY stu_name;
+SELECT stu_name, COUNT(stu_id) from oop_info where stu_id>2016030040 GROUP BY stu_name;
 SELECT COUNT(stu_name) from oop_info GROUP BY stu_name;
 SELECT COUNT(stu_id) from oop_info GROUP BY stu_name; 
 SELECT stu_name, COUNT(*) from oop_info GROUP BY stu_name;
