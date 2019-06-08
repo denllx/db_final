@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-const std::set<std::string> keywords{"or", "and", "xor"};
+const std::set<std::string> keywords{"or", "and", "xor","like"};
 
 std::string convert(const std::string &s) {
     std::string lower_str = utils::tolower(s);
@@ -18,13 +18,14 @@ std::string convert(const std::string &s) {
     return lower_str;
 }
 
-WhereClauses::WhereClauses(const std::string &s,
+WhereClauses::WhereClauses(const std::string &s,	//原始的where子句
                            const std::map<std::string, int> &name2id) {
     std::vector<std::string> symbols;
     std::string symbol;
-    Parser parser(s);
+    Parser parser(s);	
     while (!parser.ended()) {
         symbol = parser.get_str();
+		if (symbol == "\'" || symbol == "\"") continue;
         symbols.push_back(convert(symbol));
     }
     syntax_tree = Node::create_node(symbols, name2id);

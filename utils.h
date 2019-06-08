@@ -13,5 +13,16 @@ namespace utils{
 	    std::transform(str.begin(), str.end(),str.begin(),::toupper);
 	    return str;
 	}
+
+	inline std::string toregex(std::string src) {
+		std::string dst;
+		for (int i = 0, len = src.size(); i < len; i++) {
+			if (src[i] == '%') {
+				dst += ".*?";
+			}
+			else dst.push_back(src[i]);
+		}
+		return dst;
+	}
     
 }

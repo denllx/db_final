@@ -25,9 +25,10 @@ void Parser::reset(const string &s){
     string tmp;
     bool in_quotation=false;
     for(char c:s){
-        if(c=='\"'||c=='\'')
-            in_quotation^=1;
-        if(!in_quotation&&is_oper(c)){
+		if (c == '\"' || c == '\'') {
+			in_quotation ^= 1;
+		}
+        if((!in_quotation&&is_oper(c))){
             tmp.pb(' ');
             tmp.pb(c);
             tmp.pb(' ');

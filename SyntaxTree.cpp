@@ -18,35 +18,37 @@ bool is_integer(const std::string &number) {
 
 int get_priority(const std::string &op_name) {
     const static std::map<std::string, int> priority = {
-        {"or", 1}, {"xor", 2}, {"and", 3}, {"<", 4}, {">", 4}, {"=", 4}};
+		{"or", 1}, {"xor", 2}, {"and", 3}, {"<", 4}, {">", 4}, {"=", 4},{"like",4} };
     if (priority.find(op_name) == priority.end()) return priority_max;
     return priority.at(op_name);
 }
 
 const static std::map<std::string, std::function<ptr_v(ptr_v, ptr_v)>>
-    optr_binary = {
-        {"or", [](ptr_v a, ptr_v b) -> ptr_v { return Value::v_or(a, b); }},
-        {"xor", [](ptr_v a, ptr_v b) -> ptr_v { return Value::v_xor(a, b); }},
-        {"and", [](ptr_v a, ptr_v b) -> ptr_v { return Value::v_and(a, b); }},
-        {"<", [](ptr_v a, ptr_v b) -> ptr_v { return Value::v_lt(a, b); }},
-        {">", [](ptr_v a, ptr_v b) -> ptr_v { return Value::v_gt(a, b); }},
-        {"=", [](ptr_v a, ptr_v b) -> ptr_v { return Value::v_eq(a, b); }}};
+optr_binary = {
+	{"or", [](ptr_v a, ptr_v b) -> ptr_v { return Value::v_or(a, b); }},
+	{"xor", [](ptr_v a, ptr_v b) -> ptr_v { return Value::v_xor(a, b); }},
+	{"and", [](ptr_v a, ptr_v b) -> ptr_v { return Value::v_and(a, b); }},
+	{"<", [](ptr_v a, ptr_v b) -> ptr_v { return Value::v_lt(a, b); }},
+	{">", [](ptr_v a, ptr_v b) -> ptr_v { return Value::v_gt(a, b); }},
+	{"=", [](ptr_v a, ptr_v b) -> ptr_v { return Value::v_eq(a, b); }},
+	{"like",[](ptr_v a,ptr_v b)->ptr_v {   return Value::v_like(a,b); } } };
 
 
 
 
 std::shared_ptr<Node> Node::create_node(const vs &symbols, const s2i &name2id) {
     if (symbols.empty()) return nullptr;
-    if (symbols.size() == 1) {
+    if (symbols.size() == 1) {		//叶子结点
         std::string s = symbols[0];
-        if (name2id.find(s) != name2id.end()) {
+        if (name2id.find(s) != name2id.end()) {	//attr
             return std::make_shared<AttrNode>(name2id.at(s));
-        } else {
+        } else {		//value
             ptr_v value;
             if (s[0] == '\'' || s[0] == '\"') {
                 value =
                     std::make_shared<CharValue>(s.substr(1, s.length() - 2));
-            } else if (is_integer(s)) {
+            } 
+			else if (is_integer(s)) {
                 value = std::make_shared<IntValue>(std::stoi(s));
             } else {
                 value = std::make_shared<DoubleValue>(std::stod(s));
@@ -56,9 +58,10 @@ std::shared_ptr<Node> Node::create_node(const vs &symbols, const s2i &name2id) {
     }
     std::pair<int, int> pp(priority_max, -1);
     for (int i = 0; i < symbols.size(); ++i) {
-        pp = std::min(pp, std::make_pair(get_priority(symbols[i]), i));
+        pp = std::min(pp, std::make_pair(get_priority(symbols[i]), i));	//优先级最小的symbol
     }
     vs left, right;
+	//pp=<优先级最高的symbol,其id>
     for (int i = 0; i < pp.second; ++i) {
         left.push_back(symbols[i]);
     }

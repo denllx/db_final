@@ -2,8 +2,12 @@
 #include <cassert>
 #include <iomanip>
 #include <iostream>
+#include "utils.h"
 #include <memory>
 #include <string>
+#include <regex>
+
+using namespace utils;
 
 IntValue::IntValue(int value) : value(value) {}
 DoubleValue::DoubleValue(double value) : value(value) {}
@@ -213,4 +217,23 @@ ptr_v Value::v_eq(ptr_v x, ptr_v y) {
     x = y->cast_up(x);
     y = x->cast_up(y);
     return std::make_shared<IntValue>(!(*x < *y) && !(*y < *x));
+}
+
+ptr_v Value::v_like(ptr_v x, ptr_v y) {
+	if (x->oprd_type() == Null) return x;
+	if (y->oprd_type() == Null) return y;
+	string pattern((char*)(y->getval()));//Æ¥Åä×Ö·û´®
+	if (pattern[0] == '\'' || pattern[0] == '\"') {
+		pattern = pattern.substr(1, pattern.size() - 2);
+	}
+	pattern = utils::toregex(pattern);
+	string text((char*)(x->getval()));	//±»ËÑË÷×Ö·û´®
+	std::smatch m;
+	std::regex e(pattern);
+	if (std::regex_match(text, m, e, regex_constants::match_default)) {
+		return std::make_shared<IntValue>(1);
+	}
+	else {
+		return std::make_shared<IntValue>(0);
+	}
 }

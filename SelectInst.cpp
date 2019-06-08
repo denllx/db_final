@@ -74,13 +74,18 @@ void SelectNonePre::output(){
 			for (int i = 0; i < inst->attrs().size(); i++) {
 				cout << inst->attrs()[i].get_name() << "\t";
 			}
-			for (int i = 0; i < inst->records().size(); i++) {
-				auto& cur = inst->records()[i];
+			cout << endl;
+			vector<Record> records = inst->records();
+			int records_size = records.size();
+			for (int i = 0; i < records_size; i++) {
+				auto& cur = records[i];
 				assert(cur.size() == inst->attrs().size());
 				for (int j = 0; j < cur.size(); j++) {
 					cout << *cur.get_field(j) << "\t";
 				}
+				cout << endl;
 			}
+			cout << endl;
 		}
 		else {
 			int len = attrnames.size();

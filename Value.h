@@ -28,6 +28,7 @@ public:
     static ptr_v v_lt(ptr_v, ptr_v);
     static ptr_v v_gt(ptr_v, ptr_v);
     static ptr_v v_eq(ptr_v, ptr_v);
+	static ptr_v v_like(ptr_v, ptr_v);
 	virtual bool isnull() { return true; }
 	virtual void* getval() { return nullptr; }
 };

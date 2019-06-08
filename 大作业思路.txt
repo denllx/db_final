@@ -98,8 +98,9 @@ output:
 
 order by count(*)
 
-待修复的小bug
-vector<Record>& records  加上const
+1、将like后面的单词去掉引号，按照%分割，换成.*?
+2、构建正贼表达式
+3、对于给定的condition返回true or false
 
 
 
