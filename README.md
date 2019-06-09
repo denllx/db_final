@@ -5,11 +5,12 @@
 3. 编辑presentation.md
 4. 在命令行中
 > reveal-md presentation.md --css style.css
-在本地预览
+ 在本地预览
 5. 命令行中
 > reveal-md presentation.md --css style.css --static
-在当前目录下生成一个_static文件夹
+ 在当前目录下生成一个_static文件夹
 6. 在_static文件夹中的presentation.html就是我们最终要播放的PPT
+7. 一直点向下键，点不动了就点向右键，然后再一直点向下键，可以播放全部PPT
 
 ## todolist
 #### 多表联合
