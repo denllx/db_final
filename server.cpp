@@ -18,10 +18,15 @@ public:
 		ss.clear();
 		ss.str("");
 		coutbuf = std::cout.rdbuf();
+		std::cout.rdbuf(ss.rdbuf());
 	}
 	string redirect_str() {
 		string ret;
-		ss >> ret;
+		char tmp[500];
+		while (ss.getline(tmp, 500)) {
+			ret += tmp;
+			ret += '\n';
+		}
 		std::cout.rdbuf(coutbuf);	//reset to stdout
 		return ret;
 	}
