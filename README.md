@@ -18,4 +18,5 @@
 
 ## 正常情况下，服务端返回结果打印在client的std::cout上。
 
-
+![server端正常界面](https://github.com/worsecoder/db_final/blob/master/server_ui.PNG)
+![client端正常界面](https://github.com/worsecoder/db_final/blob/master/client_ui.PNG)
