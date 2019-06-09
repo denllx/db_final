@@ -1,11 +1,22 @@
 # db_final
+# PPT的编辑方法
+1. 下载npm包管理工具
+2. 安装<a href="https://github.com/webpro/reveal-md">reveal-md</a>
+3. 编辑presentation.md
+4. 在命令行中
+> reveal-md presentation.md --css style.css
+在本地预览
+5. 命令行中
+> reveal-md presentation.md --css style.css --static
+在当前目录下生成一个_static文件夹
+6. 在_static文件夹中的presentation.html就是我们最终要播放的PPT
+
 ## todolist
 #### 多表联合
 #### union
 #### sql算术运算符
 #### 多表连接join
 #### 数据库存档
-#### Makefile
 
 # 测试客户端和服务端
 0. 在你的IDE内部链接库ws2_32.lib
