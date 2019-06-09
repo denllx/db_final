@@ -1,4 +1,5 @@
 #include<iostream>
+#include <sstream>
 #include<WinSock2.h>
 #include "SQL.h"
 #include "Reader.h"
@@ -9,6 +10,27 @@
 
 //using namespace std;
 
+class Redirect {
+	static std::stringstream ss;
+	static std::streambuf* coutbuf;
+public:
+	void redirect_cout() {
+		ss.clear();
+		ss.str("");
+		coutbuf = std::cout.rdbuf();
+	}
+	string redirect_str() {
+		string ret;
+		ss >> ret;
+		std::cout.rdbuf(coutbuf);	//reset to stdout
+		return ret;
+	}
+};
+
+std::stringstream Redirect::ss;
+std::streambuf* Redirect::coutbuf;
+
+
 int main(int argc,char* argv[]) {
 	WSADATA wsadata;
 	SOCKET serverSocket, clientSocket;
@@ -17,6 +39,7 @@ int main(int argc,char* argv[]) {
 	fd_set reads, cpyReads;
 	TIMEVAL timeout;
 	char message[bufsize] = "\0";
+	static Redirect redirect;
 
 	if (WSAStartup(MAKEWORD(2, 2), &wsadata) != 0) {
 		//std::cout << "WSAStartup() error" << std::endl;
@@ -85,10 +108,14 @@ int main(int argc,char* argv[]) {
 					}
 					else {
 						message[str_len] = 0;
-						//std::cout << "message from client:" << message << std::endl;
+						std::cout << "message from client:" << message << std::endl;
 						shared_ptr<Instruction> inst=sockid2reader[reads.fd_array[i]]->read(message);
+						redirect.redirect_cout();
 						inst->exec(*(sockid2sql[reads.fd_array[i]]));
-						//send(reads.fd_array[i], message, str_len, 0);
+						string retstr = redirect.redirect_str();
+						if (retstr == "") retstr = "Success\n";
+						send(reads.fd_array[i], retstr.c_str(), retstr.size(), 0);
+						std::cout << "message to client "<<reads.fd_array[i]<<":" << retstr << std::endl;
 					}
 				}
 			}
